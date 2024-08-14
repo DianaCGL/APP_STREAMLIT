@@ -1,7 +1,7 @@
 import streamlit as st
+import tempfile
 from docx import Document
 from docx.shared import Inches
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_BREAK
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
@@ -98,21 +98,24 @@ def procesar_calificaciones(calificaciones):
     calificacion_final = sum(promedios_ponderados.values()) / len(promedios_ponderados) * 5
     return promedios_ponderados, calificacion_final
 
-# Generar gráfico de barras utilizando matplotlib
-def generar_grafico(promedios_ponderados):
+# Generar gráfico de barras utilizando matplotlib y guardarlo en un directorio temporal
+def generar_grafico(promedios_ponderados, temp_dir):
     aspectos = list(promedios_ponderados.keys())
     valores = list(promedios_ponderados.values())
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.barh(aspectos, valores, color='skyblue')
-    ax.set_xlabel('Nivel de Cumplimiento (sobre 20)')
-    ax.set_title('Gráfico de Nivel de Cumplimiento por Aspecto')
-    ax.set_xlim(0, 20)
+    plt.figure(figsize=(10, 6))
+    plt.barh(aspectos, valores, color='skyblue')
+    plt.xlabel('Nivel de Cumplimiento (sobre 20)')
+    plt.title('Gráfico de Nivel de Cumplimiento por Aspecto')
+    plt.xlim(0, 20)
+    
+    plt.tight_layout()
+    grafico_path = f'{temp_dir}/grafico_cumplimiento.png'
+    plt.savefig(grafico_path)
+    return grafico_path
 
-    st.pyplot(fig)
-
-# Generar gráfico de radar utilizando matplotlib
-def generar_grafico_radar(promedios_ponderados):
+# Generar gráfico de radar utilizando matplotlib y guardarlo en un directorio temporal
+def generar_grafico_radar(promedios_ponderados, temp_dir):
     etiquetas = list(promedios_ponderados.keys())
     valores = list(promedios_ponderados.values())
     valores += valores[:1]  # Añadir el primer valor al final para cerrar el gráfico
@@ -128,7 +131,10 @@ def generar_grafico_radar(promedios_ponderados):
     ax.set_xticklabels(etiquetas)
     ax.set_title('Gráfico de Radar por Aspecto')
 
-    st.pyplot(fig)
+    plt.tight_layout()
+    grafico_radar_path = f'{temp_dir}/grafico_radar.png'
+    plt.savefig(grafico_radar_path)
+    return grafico_radar_path
 
 # Generar la conclusión general basada en la calificación final
 def generar_conclusion(calificacion_final):
@@ -171,71 +177,46 @@ def generar_conclusion(calificacion_final):
     else:
         return "Calificación no válida."
 
-# Generar el informe en Word con las nuevas mejoras
-def generar_informe_word(calificaciones, promedios_ponderados, calificacion_final, nombre_auditor, nombre_compania, fecha_evaluacion, nombre_compania_evaluada, destinatario, firma):
+# Generar el informe en Word
+def generar_informe_word(calificaciones, promedios_ponderados, calificacion_final, nombre_auditor, nombre_compania, fecha_evaluacion, destinatario, mensaje, temp_dir):
     document = Document()
 
     # Carátula
     document.add_heading('Informe de Evaluación de Cumplimiento de la Norma ISO 27001 (Sistema de Gestión de Seguridad de la Información)', 0)
-    document.add_paragraph(f'Compañía Evaluada: {nombre_compania_evaluada}', style='Title')
-    document.add_paragraph(f'Compañía Auditora: {nombre_compania}', style='Heading 3')
+    document.add_paragraph(f'Compañía Auditora: {nombre_compania}', style='Title')
     document.add_paragraph(f'Auditor: {nombre_auditor}', style='Heading 3')
     document.add_paragraph(f'Fecha de Evaluación: {fecha_evaluacion}', style='Heading 3')
-    
-    # Añadir un salto de página
-    document.add_page_break()
-
-    # Índice
-    document.add_heading('Índice', level=1)
-    document.add_paragraph("1. Carta de Introducción")
-    document.add_paragraph("2. Limitación de Responsabilidad")
-    document.add_paragraph("3. Objetivo de la Norma ISO 27001")
-    document.add_paragraph("4. Dimensiones Evaluadas")
-    document.add_paragraph("5. Metodología de Calificación")
-    document.add_paragraph("6. Resultados de la Evaluación")
-    document.add_paragraph("7. Conclusión General")
-    document.add_paragraph("8. Gráfico de Nivel de Cumplimiento por Aspecto")
-    document.add_paragraph("9. Gráfico de Radar por Aspecto")
-
-    # Añadir un salto de página
-    document.add_page_break()
 
     # Carta de introducción
     document.add_heading('Carta de Introducción', level=1)
-    document.add_paragraph(
-        f"Estimado/a {destinatario},\n\n"
-        "A través de la presente, tenemos el agrado de presentar los resultados de la evaluación realizada en su organización en relación con el cumplimiento del Sistema de Gestión de Seguridad de la Información (SGSI) conforme a la norma ISO 27001..."
-        "Atentamente,\n\n{firma}"
-    )
-
-    # Añadir Limitación de Responsabilidad
-    document.add_page_break()
-    document.add_heading('Limitación de Responsabilidad', level=1)
-    document.add_paragraph(
-        "La presente evaluación ha sido realizada sobre la base de la información proporcionada por la organización evaluada..."
-    )
-
-    # Añadir un salto de página
-    document.add_page_break()
+    document.add_paragraph(f'Destinatario: {destinatario}', style='Heading 2')
+    document.add_paragraph(mensaje)
 
     # Descripción del objetivo de la norma
     document.add_heading('Objetivo de la Norma ISO 27001', level=1)
     document.add_paragraph(
-        "La norma ISO/IEC 27001 establece los requisitos para un sistema de gestión de seguridad de la información (SGSI)..."
+        "La norma ISO/IEC 27001 establece los requisitos para un sistema de gestión de seguridad de la información (SGSI), "
+        "incluyendo los aspectos relacionados con la implementación, el mantenimiento y la mejora continua del SGSI. "
+        "Su objetivo es proteger la información dentro de la organización, asegurando su confidencialidad, integridad y disponibilidad."
     )
 
     # Descripción de las dimensiones evaluadas
     document.add_heading('Dimensiones Evaluadas', level=1)
     document.add_paragraph(
-        "A continuación se detallan las diferentes dimensiones evaluadas en este informe..."
+        "A continuación se detallan las diferentes dimensiones evaluadas en este informe, junto con una breve descripción de cada una:"
     )
 
     dimensiones = {
-        'Gestión de Acceso': "Evalúa la existencia y eficacia de políticas y procedimientos para la gestión de accesos...",
-        'Seguridad Física y Ambiental': "Evalúa las medidas de seguridad física y controles ambientales...",
-        'Gestión de Comunicaciones y Operaciones': "Evalúa los procedimientos seguros para la transmisión de datos sensibles...",
-        'Control de Acceso a la Información': "Evalúa los controles implementados para limitar el acceso a la información confidencial...",
-        'Gestión de Incidentes de Seguridad de la Información': "Evalúa la existencia y eficacia de procedimientos para la gestión de incidentes..."
+        'Gestión de Acceso': "Evalúa la existencia y eficacia de políticas y procedimientos para la gestión de accesos, "
+                             "incluyendo controles de autenticación y autorización para proteger los sistemas críticos.",
+        'Seguridad Física y Ambiental': "Evalúa las medidas de seguridad física y controles ambientales implementados para proteger "
+                                        "los equipos e infraestructuras críticas de la organización.",
+        'Gestión de Comunicaciones y Operaciones': "Evalúa los procedimientos seguros para la transmisión de datos sensibles y las prácticas "
+                                                   "de gestión de operaciones para mantener la seguridad de la infraestructura de red.",
+        'Control de Acceso a la Información': "Evalúa los controles implementados para limitar el acceso a la información confidencial y crítica, "
+                                              "así como las políticas de clasificación y etiquetado de la información.",
+        'Gestión de Incidentes de Seguridad de la Información': "Evalúa la existencia y eficacia de procedimientos para la gestión de incidentes "
+                                                               "de seguridad, incluyendo la capacitación y los simulacros realizados para preparar al personal."
     }
 
     for dimension, descripcion in dimensiones.items():
@@ -279,64 +260,59 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     document.add_paragraph(conclusion)
     document.add_paragraph()
 
-    # Añadir gráfico de barras
+    # Añadir gráficos al informe
     document.add_heading('Gráfico de Nivel de Cumplimiento por Aspecto', level=1)
-    generar_grafico(promedios_ponderados)
-    document.add_picture('grafico_cumplimiento.png', width=Inches(6))
+    grafico_path = generar_grafico(promedios_ponderados, temp_dir)
+    document.add_picture(grafico_path, width=Inches(6))
 
-    # Añadir gráfico de radar
     document.add_heading('Gráfico de Radar por Aspecto', level=1)
-    generar_grafico_radar(promedios_ponderados)
-    document.add_picture('grafico_radar.png', width=Inches(6))
+    grafico_radar_path = generar_grafico_radar(promedios_ponderados, temp_dir)
+    document.add_picture(grafico_radar_path, width=Inches(6))
 
-    # Añadir pie de página
-    section = document.sections[0]
-    footer = section.footer
-    footer_paragraph = footer.paragraphs[0]
-    footer_paragraph.text = f'Compañía Auditora: {nombre_compania} - Fecha de Evaluación: {fecha_evaluacion}'
-    footer_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    # Guardar el documento
+    informe_path = f"{temp_dir}/informe_ISO27001.docx"
+    document.save(informe_path)
+    return informe_path
 
-    document.save('informe.docx')
+# Interfaz de usuario de Streamlit
+def main():
+    st.title("Evaluación de Cumplimiento ISO 27001")
 
-# Interfaz en Streamlit
-st.title("Evaluación de Cumplimiento ISO 27001")
+    # Datos del auditor y la compañía
+    st.header("Información de la Evaluación")
+    nombre_auditor = st.text_input("Nombre del Auditor")
+    nombre_compania = st.text_input("Nombre de la Compañía Auditora")
+    fecha_evaluacion = st.date_input("Fecha de Evaluación", datetime.today())
+    destinatario = st.text_input("Nombre del Destinatario")
+    mensaje = st.text_area("Mensaje de Introducción")
 
-# Datos generales
-st.header("Datos Generales")
-nombre_auditor = st.text_input("Nombre del Auditor")
-nombre_compania = st.text_input("Nombre de la Compañía Auditora")
-nombre_compania_evaluada = st.text_input("Nombre de la Compañía Evaluada")
-fecha_evaluacion = st.date_input("Fecha de Evaluación")
-destinatario = st.text_input("Destinatario del Informe")
-firma = st.text_input("Firma del Auditor")
+    # Ingreso de calificaciones
+    st.header("Calificaciones")
+    calificaciones = {key: [] for key in rubricas.keys()}
+    for aspecto, preguntas in rubricas.items():
+        st.subheader(aspecto)
+        for pregunta, opciones in preguntas.items():
+            calificacion = st.selectbox(pregunta, list(opciones.keys()), format_func=lambda x: f"{x}: {opciones[x]}")
+            calificaciones[aspecto].append((pregunta, calificacion))
 
-# Evaluación por aspectos
-st.header("Evaluación por Aspectos")
-calificaciones_input = {key: [] for key in rubricas.keys()}
+    # Botón para generar el informe
+    if st.button("Generar Informe"):
+        if not nombre_auditor or not nombre_compania or not destinatario or not mensaje:
+            st.error("Por favor, completa toda la información de la evaluación.")
+        else:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                promedios_ponderados, calificacion_final = procesar_calificaciones(calificaciones)
+                informe_path = generar_informe_word(calificaciones, promedios_ponderados, calificacion_final,
+                                                    nombre_auditor, nombre_compania, fecha_evaluacion, destinatario, mensaje, temp_dir)
+                
+                # Descargar el archivo
+                with open(informe_path, "rb") as file:
+                    st.download_button(
+                        label="Descargar Informe",
+                        data=file,
+                        file_name="informe_ISO27001.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
 
-for aspecto, preguntas in rubricas.items():
-    st.subheader(aspecto)
-    for pregunta, opciones in preguntas.items():
-        calificacion = st.selectbox(pregunta, list(opciones.keys()), format_func=lambda x: f"{x}: {opciones[x]}")
-        calificaciones_input[aspecto].append((pregunta, calificacion))
-
-# Botón para generar el informe
-if st.button("Generar Informe"):
-    if not all([nombre_auditor, nombre_compania, nombre_compania_evaluada, fecha_evaluacion, destinatario, firma]):
-        st.error("Debe completar todos los campos para generar el informe.")
-    else:
-        promedios_ponderados, calificacion_final = procesar_calificaciones(calificaciones_input)
-        generar_informe_word(calificaciones_input, promedios_ponderados, calificacion_final,
-                             nombre_auditor, nombre_compania, fecha_evaluacion,
-                             nombre_compania_evaluada, destinatario, firma)
-        st.success("Informe generado correctamente.")
-
-# Mostrar gráficos
-st.header("Gráficos")
-if st.button("Mostrar Gráfico de Barras"):
-    promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    generar_grafico(promedios_ponderados)
-
-if st.button("Mostrar Gráfico de Radar"):
-    promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    generar_grafico_radar(promedios_ponderados)
+if __name__ == "__main__":
+    main()
