@@ -4,7 +4,6 @@ from docx.shared import Inches
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
-import tempfile
 import os
 
 # Definir las descripciones de las rúbricas específicas para cada pregunta
@@ -110,7 +109,10 @@ def generar_grafico(promedios_ponderados):
     ax.set_title('Gráfico de Nivel de Cumplimiento por Aspecto')
     ax.set_xlim(0, 20)
 
-    st.pyplot(fig)
+    plt.tight_layout()
+    grafico_barras_path = 'grafico_cumplimiento.png'
+    plt.savefig(grafico_barras_path)
+    return grafico_barras_path
 
 # Generar gráfico de radar utilizando matplotlib
 def generar_grafico_radar(promedios_ponderados):
@@ -129,7 +131,10 @@ def generar_grafico_radar(promedios_ponderados):
     ax.set_xticklabels(etiquetas)
     ax.set_title('Gráfico de Radar por Aspecto')
 
-    st.pyplot(fig)
+    plt.tight_layout()
+    grafico_radar_path = 'grafico_radar.png'
+    plt.savefig(grafico_radar_path)
+    return grafico_radar_path
 
 # Generar la conclusión general basada en la calificación final
 def generar_conclusion(calificacion_final):
@@ -205,17 +210,15 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     document.add_heading('Carta de Introducción', level=1)
     document.add_paragraph(
         f"Estimado/a {destinatario},\n\n"
-        "A través de la presente, tenemos el agrado de presentar los resultados de la evaluación realizada en su organización en relación con el cumplimiento del Sistema de Gestión de Seguridad de la Información (SGSI) conforme a la norma ISO 27001. La evaluación fue llevada a cabo con el objetivo de revisar y analizar la efectividad de las políticas, procedimientos y controles implementados para asegurar que se alineen con los estándares internacionales de seguridad de la información.\n\n"
-        "El informe adjunto contiene un resumen detallado de las áreas revisadas, incluyendo gestión de acceso, seguridad física y ambiental, gestión de comunicaciones y operaciones, control de acceso a la información, y gestión de incidentes de seguridad de la información. Además, se ofrecen recomendaciones para la optimización de los procesos y la mejora continua del SGSI.\n\n"
-        "Esperamos que los resultados presentados en este informe sean de utilidad para fortalecer las prácticas de seguridad de la información en su organización. Quedamos a su disposición para profundizar en cualquier aspecto del informe que requiera su atención.\n\n"
-        f"Atentamente,\n\n{firma}"
+        "A través de la presente, tenemos el agrado de presentar los resultados de la evaluación realizada en su organización en relación con el cumplimiento del Sistema de Gestión de Seguridad de la Información (SGSI) conforme a la norma ISO 27001..."
+        "Atentamente,\n\n{firma}"
     )
 
-    # Añadir Limitación de Responsabilidad justo después de la carta de introducción
+    # Añadir Limitación de Responsabilidad
     document.add_page_break()
     document.add_heading('Limitación de Responsabilidad', level=1)
     document.add_paragraph(
-        "La presente evaluación ha sido realizada sobre la base de la información proporcionada por la organización evaluada y las observaciones efectuadas durante el proceso de evaluación. Si bien se ha aplicado la debida diligencia y se han seguido los estándares reconocidos para llevar a cabo esta revisión, los resultados y recomendaciones contenidos en este informe no garantizan la seguridad absoluta del sistema de gestión evaluado. La responsabilidad de implementar, mantener y mejorar los controles de seguridad recae exclusivamente en la organización evaluada. La compañía evaluadora no asume responsabilidad alguna por los resultados derivados de la implementación o falta de implementación de las recomendaciones sugeridas en este informe."
+        "La presente evaluación ha sido realizada sobre la base de la información proporcionada por la organización evaluada..."
     )
 
     # Añadir un salto de página
@@ -224,28 +227,21 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     # Descripción del objetivo de la norma
     document.add_heading('Objetivo de la Norma ISO 27001', level=1)
     document.add_paragraph(
-        "La norma ISO/IEC 27001 establece los requisitos para un sistema de gestión de seguridad de la información (SGSI), "
-        "incluyendo los aspectos relacionados con la implementación, el mantenimiento y la mejora continua del SGSI. "
-        "Su objetivo es proteger la información dentro de la organización, asegurando su confidencialidad, integridad y disponibilidad."
+        "La norma ISO/IEC 27001 establece los requisitos para un sistema de gestión de seguridad de la información (SGSI)..."
     )
 
     # Descripción de las dimensiones evaluadas
     document.add_heading('Dimensiones Evaluadas', level=1)
     document.add_paragraph(
-        "A continuación se detallan las diferentes dimensiones evaluadas en este informe, junto con una breve descripción de cada una:"
+        "A continuación se detallan las diferentes dimensiones evaluadas en este informe..."
     )
 
     dimensiones = {
-        'Gestión de Acceso': "Evalúa la existencia y eficacia de políticas y procedimientos para la gestión de accesos, "
-                             "incluyendo controles de autenticación y autorización para proteger los sistemas críticos.",
-        'Seguridad Física y Ambiental': "Evalúa las medidas de seguridad física y controles ambientales implementados para proteger "
-                                        "los equipos e infraestructuras críticas de la organización.",
-        'Gestión de Comunicaciones y Operaciones': "Evalúa los procedimientos seguros para la transmisión de datos sensibles y las prácticas "
-                                                   "de gestión de operaciones para mantener la seguridad de la infraestructura de red.",
-        'Control de Acceso a la Información': "Evalúa los controles implementados para limitar el acceso a la información confidencial y crítica, "
-                                              "así como las políticas de clasificación y etiquetado de la información.",
-        'Gestión de Incidentes de Seguridad de la Información': "Evalúa la existencia y eficacia de procedimientos para la gestión de incidentes "
-                                                               "de seguridad, incluyendo la capacitación y los simulacros realizados para preparar al personal."
+        'Gestión de Acceso': "Evalúa la existencia y eficacia de políticas y procedimientos para la gestión de accesos...",
+        'Seguridad Física y Ambiental': "Evalúa las medidas de seguridad física y controles ambientales...",
+        'Gestión de Comunicaciones y Operaciones': "Evalúa los procedimientos seguros para la transmisión de datos sensibles...",
+        'Control de Acceso a la Información': "Evalúa los controles implementados para limitar el acceso a la información confidencial...",
+        'Gestión de Incidentes de Seguridad de la Información': "Evalúa la existencia y eficacia de procedimientos para la gestión de incidentes..."
     }
 
     for dimension, descripcion in dimensiones.items():
@@ -291,13 +287,13 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
 
     # Añadir gráfico de barras
     document.add_heading('Gráfico de Nivel de Cumplimiento por Aspecto', level=1)
-    generar_grafico(promedios_ponderados)
-    document.add_picture('grafico_cumplimiento.png', width=Inches(6))
+    grafico_barras_path = generar_grafico(promedios_ponderados)
+    document.add_picture(grafico_barras_path, width=Inches(6))
 
     # Añadir gráfico de radar
     document.add_heading('Gráfico de Radar por Aspecto', level=1)
-    generar_grafico_radar(promedios_ponderados)
-    document.add_picture('grafico_radar.png', width=Inches(6))
+    grafico_radar_path = generar_grafico_radar(promedios_ponderados)
+    document.add_picture(grafico_radar_path, width=Inches(6))
 
     # Añadir pie de página
     section = document.sections[0]
@@ -306,10 +302,9 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     footer_paragraph.text = f'Compañía Auditora: {nombre_compania} - Fecha de Evaluación: {fecha_evaluacion}'
     footer_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-    # Guardar el documento en un archivo temporal
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
-    document.save(temp_file.name)
-    return temp_file.name
+    output_path = 'informe.docx'
+    document.save(output_path)
+    return output_path
 
 # Interfaz en Streamlit
 st.title("Evaluación de Cumplimiento ISO 27001")
@@ -339,23 +334,23 @@ if st.button("Generar Informe"):
         st.error("Debe completar todos los campos para generar el informe.")
     else:
         promedios_ponderados, calificacion_final = procesar_calificaciones(calificaciones_input)
-        informe_path = generar_informe_word(calificaciones_input, promedios_ponderados, calificacion_final,
-                                            nombre_auditor, nombre_compania, fecha_evaluacion,
-                                            nombre_compania_evaluada, destinatario, firma)
-        with open(informe_path, "rb") as file:
-            st.download_button(
-                label="Descargar Informe",
+        output_path = generar_informe_word(calificaciones_input, promedios_ponderados, calificacion_final,
+                                           nombre_auditor, nombre_compania, fecha_evaluacion,
+                                           nombre_compania_evaluada, destinatario, firma)
+        with open(output_path, "rb") as file:
+            btn = st.download_button(
+                label="Descargar Informe en Word",
                 data=file,
-                file_name="informe_evaluacion_ISO27001.docx"
+                file_name=output_path,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
-        st.success("Informe generado correctamente.")
 
 # Mostrar gráficos
 st.header("Gráficos")
 if st.button("Mostrar Gráfico de Barras"):
     promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    generar_grafico(promedios_ponderados)
+    st.image(grafico_barras_path)
 
 if st.button("Mostrar Gráfico de Radar"):
     promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    generar_grafico_radar(promedios_ponderados)
+    st.image(grafico_radar_path)
