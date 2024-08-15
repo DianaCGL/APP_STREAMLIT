@@ -1,4 +1,3 @@
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import streamlit as st
 from docx import Document
 from docx.shared import Inches
@@ -6,7 +5,7 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
-import base64
+import io
 
 # Definir las descripciones de las rúbricas específicas para cada pregunta
 rubricas = {
@@ -111,7 +110,10 @@ def generar_grafico(promedios_ponderados):
     ax.set_title('Gráfico de Nivel de Cumplimiento por Aspecto')
     ax.set_xlim(0, 20)
 
-    st.pyplot(fig)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    return buf
 
 # Generar gráfico de radar utilizando matplotlib
 def generar_grafico_radar(promedios_ponderados):
@@ -130,7 +132,10 @@ def generar_grafico_radar(promedios_ponderados):
     ax.set_xticklabels(etiquetas)
     ax.set_title('Gráfico de Radar por Aspecto')
 
-    st.pyplot(fig)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    return buf
 
 # Generar la conclusión general basada en la calificación final
 def generar_conclusion(calificacion_final):
@@ -212,7 +217,7 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
         f"Atentamente,\n\n{firma}"
     )
 
-    # Añadir Limitación de Responsabilidad justo después de la carta de introducción
+    # Añadir Limitación de Responsabilidad
     document.add_page_break()
     document.add_heading('Limitación de Responsabilidad', level=1)
     document.add_paragraph(
@@ -290,15 +295,14 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     document.add_paragraph(conclusion)
     document.add_paragraph()
 
-    # Añadir gráfico de barras
+    # Añadir gráficos generados en memoria
     document.add_heading('Gráfico de Nivel de Cumplimiento por Aspecto', level=1)
-    generar_grafico(promedios_ponderados)
-    document.add_picture('grafico_cumplimiento.png', width=Inches(6))
+    buf_barras = generar_grafico(promedios_ponderados)
+    document.add_picture(buf_barras, width=Inches(6))
 
-    # Añadir gráfico de radar
     document.add_heading('Gráfico de Radar por Aspecto', level=1)
-    generar_grafico_radar(promedios_ponderados)
-    document.add_picture('grafico_radar.png', width=Inches(6))
+    buf_radar = generar_grafico_radar(promedios_ponderados)
+    document.add_picture(buf_radar, width=Inches(6))
 
     # Añadir pie de página
     section = document.sections[0]
@@ -307,16 +311,7 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
     footer_paragraph.text = f'Compañía Auditora: {nombre_compania} - Fecha de Evaluación: {fecha_evaluacion}'
     footer_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-    document.save('informe.docx')
-    
-    # Descargar el archivo Word generado
-    with open("informe.docx", "rb") as file:
-        btn = st.download_button(
-            label="Descargar Informe en Word",
-            data=file,
-            file_name="informe.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
+    return document
 
 # Interfaz en Streamlit
 st.title("Evaluación de Cumplimiento ISO 27001")
@@ -346,17 +341,26 @@ if st.button("Generar Informe"):
         st.error("Debe completar todos los campos para generar el informe.")
     else:
         promedios_ponderados, calificacion_final = procesar_calificaciones(calificaciones_input)
-        generar_informe_word(calificaciones_input, promedios_ponderados, calificacion_final,
-                             nombre_auditor, nombre_compania, fecha_evaluacion,
-                             nombre_compania_evaluada, destinatario, firma)
-        st.success("Informe generado correctamente.")
+        document = generar_informe_word(calificaciones_input, promedios_ponderados, calificacion_final,
+                                        nombre_auditor, nombre_compania, fecha_evaluacion,
+                                        nombre_compania_evaluada, destinatario, firma)
+        # Guardar el archivo en un buffer de memoria
+        buf = io.BytesIO()
+        document.save(buf)
+        buf.seek(0)
+        st.download_button(
+            label="Descargar Informe en Word",
+            data=buf,
+            file_name="informe_ISO27001.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
 # Mostrar gráficos
 st.header("Gráficos")
 if st.button("Mostrar Gráfico de Barras"):
     promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    generar_grafico(promedios_ponderados)
+    st.pyplot(generar_grafico(promedios_ponderados))
 
 if st.button("Mostrar Gráfico de Radar"):
     promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    generar_grafico_radar(promedios_ponderados)
+    st.pyplot(generar_grafico_radar(promedios_ponderados))
