@@ -355,12 +355,3 @@ if st.button("Generar Informe"):
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
-# Mostrar gráficos
-st.header("Gráficos")
-if st.button("Mostrar Gráfico de Barras"):
-    promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    st.pyplot(generar_grafico(promedios_ponderados))
-
-if st.button("Mostrar Gráfico de Radar"):
-    promedios_ponderados, _ = procesar_calificaciones(calificaciones_input)
-    st.pyplot(generar_grafico_radar(promedios_ponderados))
