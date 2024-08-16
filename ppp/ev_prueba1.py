@@ -316,6 +316,15 @@ def generar_informe_word(calificaciones, promedios_ponderados, calificacion_fina
 # Interfaz en Streamlit
 st.title("Evaluación de Cumplimiento ISO 27001")
 
+# Descripción ISO 27001
+st.write("""
+ISO 27001 es una norma internacional que establece los requisitos fundamentales para un sistema de gestión de seguridad de la información (SGSI). Su propósito es garantizar la protección de la información sensible de una organización, asegurando su confidencialidad, integridad y disponibilidad mediante la implementación de políticas y controles bien definidos.
+
+A través de esta aplicación, tendrás la capacidad de evaluar de manera estructurada diversos aspectos críticos de la seguridad de la información en la organización que estás auditando. La interfaz intuitiva te guiará a través de cada sección, permitiéndote ingresar la información relevante y calificar las prácticas actuales de la organización de manera clara y precisa.
+
+Al concluir la evaluación, la herramienta generará automáticamente un informe detallado que resumirá los resultados de la auditoría. Este informe te proporcionará un diagnóstico completo del estado actual de la seguridad en la organización, junto con recomendaciones específicas para mejorar el cumplimiento de los estándares de ISO 27001. Además, tendrás acceso a gráficos interactivos que te ayudarán a interpretar los datos de manera visual y a identificar fácilmente las áreas que requieren mayor atención.
+""")
+
 # Datos generales
 st.header("Datos Generales")
 nombre_auditor = st.text_input("Nombre del Auditor")
