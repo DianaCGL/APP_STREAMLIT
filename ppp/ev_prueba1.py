@@ -338,6 +338,11 @@ firma = st.text_input("Firma del Auditor")
 st.header("Evaluación por Aspectos")
 calificaciones_input = {key: [] for key in rubricas.keys()}
 
+# Instrucción sobre la evaluación
+st.write("""
+Para cada uno de los cinco aspectos clave de la seguridad de la información, asigna una calificación en una escala del 1 al 5, donde 1 representa el nivel más bajo de cumplimiento y 5 el nivel más alto. Esta evaluación es esencial para asegurar que el diagnóstico sea preciso y útil para la organización en su proceso de alineación con los estándares de la norma ISO 27001.
+""")
+
 for aspecto, preguntas in rubricas.items():
     st.subheader(aspecto)
     for pregunta, opciones in preguntas.items():
