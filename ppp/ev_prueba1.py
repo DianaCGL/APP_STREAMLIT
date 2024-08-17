@@ -325,6 +325,9 @@ A través de esta aplicación, tendrás la capacidad de evaluar de manera estruc
 
 # Datos generales
 st.header("Datos Generales")
+st.write("""
+Para comenzar, por favor completa la información clave que personalizará y contextualizará el informe de auditoría. Asegúrate de ingresar los detalles necesarios tanto de la entidad auditora como de la organización evaluada. Además, incluye la fecha en que se realiza la evaluación y los datos de contacto de la persona que recibirá el informe. Con estos datos, garantizamos que el informe refleje fielmente el proceso de auditoría realizado.
+""")
 nombre_auditor = st.text_input("Nombre del Auditor")
 nombre_compania = st.text_input("Nombre de la Compañía Auditora")
 nombre_compania_evaluada = st.text_input("Nombre de la Compañía Evaluada")
