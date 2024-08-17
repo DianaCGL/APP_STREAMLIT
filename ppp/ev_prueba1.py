@@ -324,7 +324,7 @@ A través de esta aplicación, tendrás la capacidad de evaluar de manera estruc
 """)
 
 # Datos generales
-st.header("Datos Generales")
+st.header("Parte 1: Datos Generales")
 st.write("""
 Para comenzar, por favor completa la información clave que personalizará y contextualizará el informe de auditoría. Asegúrate de ingresar los detalles necesarios tanto de la entidad auditora como de la organización evaluada. Además, incluye la fecha en que se realiza la evaluación y los datos de contacto de la persona que recibirá el informe. Con estos datos, garantizamos que el informe refleje fielmente el proceso de auditoría realizado.
 """)
@@ -336,7 +336,7 @@ destinatario = st.text_input("Destinatario del Informe")
 firma = st.text_input("Firma del Auditor")
 
 # Evaluación por aspectos
-st.header("Evaluación por Aspectos")
+st.header("Parte 2: Evaluación por Aspectos")
 calificaciones_input = {key: [] for key in rubricas.keys()}
 
 # Instrucción sobre la evaluación
@@ -351,7 +351,7 @@ for aspecto, preguntas in rubricas.items():
         calificaciones_input[aspecto].append((pregunta, calificacion))
 
 # Párrafo para generación del informe
-st.header("Generar el informe")
+st.header("Parte 3: Generar el informe")
 st.write("""
 Al concluir la evaluación, la herramienta generará automáticamente un informe detallado que resumirá los resultados de la auditoría. Este informe te proporcionará un diagnóstico completo del estado actual de la seguridad en la organización, junto con recomendaciones específicas para mejorar el cumplimiento de los estándares de ISO 27001. Además, tendrás acceso a gráficos interactivos que te ayudarán a interpretar los datos de manera visual y a identificar fácilmente las áreas que requieren mayor atención.
 """)
