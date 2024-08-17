@@ -347,6 +347,11 @@ for aspecto, preguntas in rubricas.items():
         calificacion = st.selectbox(pregunta, list(opciones.keys()), format_func=lambda x: f"{x}: {opciones[x]}")
         calificaciones_input[aspecto].append((pregunta, calificacion))
 
+# Párrafo para generación del informe
+st.write("""
+Al concluir la evaluación, la herramienta generará automáticamente un informe detallado que resumirá los resultados de la auditoría. Este informe te proporcionará un diagnóstico completo del estado actual de la seguridad en la organización, junto con recomendaciones específicas para mejorar el cumplimiento de los estándares de ISO 27001. Además, tendrás acceso a gráficos interactivos que te ayudarán a interpretar los datos de manera visual y a identificar fácilmente las áreas que requieren mayor atención.
+""")
+
 # Botón para generar el informe
 if st.button("Generar Informe"):
     if not all([nombre_auditor, nombre_compania, nombre_compania_evaluada, fecha_evaluacion, destinatario, firma]):
